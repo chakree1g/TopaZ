@@ -1,0 +1,116 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.0
+  name: testruns.apps.example.com
+spec:
+  group: apps.example.com
+  names:
+    kind: TestRun
+    listKind: TestRunList
+    plural: testruns
+    singular: testrun
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .status.state
+      name: State
+      type: string
+    - jsonPath: .status.result
+      name: Result
+      type: string
+    - jsonPath: .status.runnerPod
+      name: Pod
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: TestRun is the Schema for the testruns API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TestRunSpec defines the desired state of TestRun
+            properties:
+              appName:
+                description: AppName is the name of the target App CR to test against
+                type: string
+              git:
+                description: Git source for the script
+                properties:
+                  path:
+                    description: Path to the script within the repository
+                    type: string
+                  revision:
+                    default: main
+                    description: Revision to checkout (branch, tag, sha)
+                    type: string
+                  url:
+                    description: URL of the git repository
+                    type: string
+                required:
+                - path
+                - url
+                type: object
+              script:
+                description: Script is the inline Lua script to execute
+                type: string
+              timeout:
+                default: 60s
+                description: Timeout for the test execution (default 60s)
+                type: string
+            required:
+            - appName
+            type: object
+          status:
+            description: TestRunStatus defines the observed state of TestRun
+            properties:
+              completionTime:
+                description: CompletionTime is when the test finished
+                format: date-time
+                type: string
+              result:
+                description: Result summary or error message
+                type: string
+              runnerPod:
+                description: RunnerPod is the name of the pod executing the test
+                type: string
+              startTime:
+                description: StartTime is when the test started
+                format: date-time
+                type: string
+              state:
+                description: State of the test execution
+                enum:
+                - Pending
+                - Running
+                - Passed
+                - Failed
+                - Error
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

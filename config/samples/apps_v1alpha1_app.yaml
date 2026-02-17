@@ -1,0 +1,26 @@
+apiVersion: apps.example.com/v1alpha1
+kind: App
+metadata:
+  labels:
+    app.kubernetes.io/name: topas
+    app.kubernetes.io/managed-by: kustomize
+  name: bookstore-demo
+spec:
+  targetURL: "http://bookstore.default.svc.cluster.local"
+  environment: "staging"
+  healthCheck:
+    path: "/healthz"
+    intervalSeconds: 15
+    timeoutSeconds: 3
+  # auth:
+  #   type: "bearer"
+  #   secretRef: "bookstore-api-token"
+  endpoints:
+    - name: "list-books"
+      path: "/api/v1/books"
+      method: "GET"
+      expectedStatusCode: 200
+    - name: "create-book"
+      path: "/api/v1/books"
+      method: "POST"
+      expectedStatusCode: 201

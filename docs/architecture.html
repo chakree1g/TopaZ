@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TOPAS Architecture</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #1a1a2e;
+            color: #e0e0e0;
+        }
+        h1 { color: #fff; text-align: center; }
+        .mermaid { background: #fff; border-radius: 12px; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>TOPAS — Architecture Diagram</h1>
+    <div class="mermaid">
+graph TB
+    CLI["kctrl CLI"]
+    LuaFile["test.lua"]
+    PmFile["collection.json"]
+
+    subgraph ControlPlane["Control Plane"]
+        API["K8s API Server"]
+        SC["SUT Controller"]
+        TC["TestRun Controller"]
+    end
+
+    subgraph DataPlane["Data Plane - Runner Pod"]
+        InitGit["Init: git clone"]
+        InitScript["Init: write script"]
+        LuaVM["Lua VM"]
+        SutMod["sut module"]
+        HttpMod["http module"]
+        DbMod["db module"]
+        PmMod["postman module"]
+        Newman["newman CLI"]
+    end
+
+    subgraph SUT["System Under Test"]
+        Dep["Deployments"]
+        Svc["Services"]
+        DB[("Database")]
+    end
+
+    CLI -->|"create TestRun CR"| API
+    CLI -->|"stream logs"| DataPlane
+    LuaFile -.->|"bundled"| DataPlane
+    PmFile -.->|"bundled"| DataPlane
+
+    API -->|"watch App"| SC
+    API -->|"watch TestRun"| TC
+    TC -->|"create Pod"| DataPlane
+    SC -->|"reconcile"| Dep
+    SC -->|"reconcile"| Svc
+
+    InitGit --> LuaVM
+    InitScript --> LuaVM
+
+    LuaVM --> SutMod
+    LuaVM --> HttpMod
+    LuaVM --> DbMod
+    LuaVM --> PmMod
+
+    SutMod -->|"K8s API"| API
+    HttpMod -->|"HTTP"| Svc
+    DbMod -->|"SQL"| DB
+    PmMod -->|"subprocess"| Newman
+    Newman -->|"HTTP"| Svc
+
+    classDef user fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    classDef control fill:#e1f5fe,stroke:#01579b,color:#000
+    classDef data fill:#fff3e0,stroke:#e65100,color:#000
+    classDef sut fill:#e8f5e9,stroke:#2e7d32,color:#000
+    classDef module fill:#fce4ec,stroke:#c62828,color:#000
+
+    class CLI,LuaFile,PmFile user
+    class API,SC,TC control
+    class InitGit,InitScript,LuaVM,Newman data
+    class SutMod,HttpMod,DbMod,PmMod module
+    class Dep,Svc,DB sut
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

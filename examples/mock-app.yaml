@@ -1,0 +1,29 @@
+apiVersion: apps.example.com/v1alpha1
+kind: App
+metadata:
+  name: mock-app
+  namespace: default
+spec:
+  databases:
+    - name: db
+      image: postgres:16-alpine
+      port: 5432
+      credentials:
+        user: topas
+        password: topas
+        dbname: testdb
+      initSQL: |
+        CREATE TABLE IF NOT EXISTS items (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          price REAL NOT NULL
+        );
+  services:
+    - name: echo
+      image: localhost/mock-server:v2
+      version: "v2"
+      replicas: 1
+      port: 8080
+      grpcPort: 50051
+      envVars:
+        DATABASE_URL: "postgres://topas:topas@mock-app-db:5432/testdb?sslmode=disable"

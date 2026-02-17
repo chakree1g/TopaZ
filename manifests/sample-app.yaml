@@ -1,0 +1,22 @@
+apiVersion: apps.example.com/v1alpha1
+kind: App
+metadata:
+  name: payments
+  namespace: default
+spec:
+  services:
+    - name: frontend
+      image: nginx:1.14.2
+      version: "1.14.2"
+      replicas: 2
+      port: 80
+    - name: backend
+      image: python:3.9-slim
+      version: "3.9"
+      replicas: 1
+      port: 5000
+    - name: db
+      image: postgres:13
+      version: "13"
+      replicas: 1
+      port: 5432

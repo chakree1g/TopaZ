@@ -1,0 +1,13 @@
+# More info: https://docs.docker.com/engine/reference/builder/#dockerignore-file
+# Ignore build artifacts and non-essential files
+bin/
+!bin/manager
+!bin/runner
+cover.out
+dist/
+Dockerfile.cross
+.git/
+.github/
+
+# Ignore test files inside the container build
+**/*_test.go

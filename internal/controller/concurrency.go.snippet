@@ -1,0 +1,18 @@
+	// 0. Check Concurrency
+	var activePods corev1.PodList
+	if err := r.List(ctx, &activePods, client.MatchingLabels{"runner-type": "topas"}); err != nil {
+		return ctrl.Result{}, err
+	}
+	
+	runningCount := 0
+	for _, p := range activePods.Items {
+		if p.Status.Phase == corev1.PodRunning || p.Status.Phase == corev1.PodPending {
+			runningCount++
+		}
+	}
+
+	const MaxConcurrency = 5
+	if runningCount >= MaxConcurrency {
+		log.Info("Concurrency limit reached", "active", runningCount, "limit", MaxConcurrency)
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}

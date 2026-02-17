@@ -1,0 +1,27 @@
+apiVersion: apps.example.com/v1alpha1
+kind: TestRun
+metadata:
+  name: payments-upgrade-test
+  namespace: default
+spec:
+  script: |
+    local sut = require("sut")
+    
+    print("Beginning Payments App Upgrade Test...")
+    
+    -- 1. Wait for initial stability
+    print("Waiting for frontend...")
+    sut.wait("frontend")
+    
+    -- 2. Perform Upgrade
+    print("Upgrading frontend to 1.16.1...")
+    sut.apply("frontend", {
+      image = "nginx:1.16.1",
+      replicas = 3
+    })
+    
+    -- 3. Verify Rollout
+    print("Waiting for rollout...")
+    sut.wait("frontend")
+    
+    print("Upgrade Successful!")
